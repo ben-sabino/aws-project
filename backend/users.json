@@ -1,0 +1,18 @@
+{
+    "testuser": {
+        "username": "testuser",
+        "hashed_password": "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewYpwBAHHKQF.PjO"
+    },
+    "myuser": {
+        "username": "myuser",
+        "hashed_password": "$2b$12$HI1aTWPlsgVhWPrSxWMvd.VMwQ5mNGqMxr9YsNz7WsECweDI7TI4m"
+    },
+    "benjas": {
+        "username": "benjas",
+        "hashed_password": "$2b$12$PEViiYW2PmEM7IEXCZHD6eIUpJ.NaxxJVZ.mPGacIEZMFGmmwQJYy"
+    },
+    "mynewuser": {
+        "username": "mynewuser",
+        "hashed_password": "$2b$12$DPm9s0lEcxYasHB4elP7g.3jrLrt7oNCgNGsr5wP/9rZ.f4dN.aJW"
+    }
+}

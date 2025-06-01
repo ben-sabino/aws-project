@@ -1,0 +1,13 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copiar apenas os arquivos de dependências primeiro
+COPY package*.json ./
+
+# Instalar dependências
+RUN npm install && \
+    npm install @mui/material @emotion/react @emotion/styled axios @types/axios
+
+# O código será montado como volume
+CMD ["npm", "run", "dev", "--", "--host"]
