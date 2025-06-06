@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import type { FormEvent, ChangeEvent } from 'react'
 import { Container, Box, TextField, Button, Typography, Alert, Tabs, Tab } from '@mui/material'
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'
+
 import axios from 'axios'
 
 // Configuração global do axios
@@ -127,8 +128,7 @@ function AuthForm() {
       formData.append('username', username)
       formData.append('password', password)
 
-      const response = await axios.post<LoginResponse>('/token', formData, {
-        headers: {
+      await axios.post<RegisterResponse>('/register', {        headers: {
           'Content-Type': 'multipart/form-data',
         },
       })
