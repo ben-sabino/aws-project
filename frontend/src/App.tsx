@@ -124,21 +124,28 @@ function AuthForm() {
     setError('')
     setSuccess('')
     try {
-      const formData = new FormData()
+      // Para login com usuário e senha, o FastAPI geralmente espera 'x-www-form-urlencoded'
+      // A classe URLSearchParams é perfeita para isso.
+      const formData = new URLSearchParams()
       formData.append('username', username)
       formData.append('password', password)
 
-      await axios.post<RegisterResponse>('/register', {        headers: {
-          'Content-Type': 'multipart/form-data',
+      // 1. Chame o endpoint correto para login (ex: /token)
+      // 2. Guarde a resposta em uma variável (ex: loginResponse)
+      const loginResponse = await axios.post<LoginResponse>('/token', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
       })
 
-      localStorage.setItem('token', Response.data.access_token)
+      // 3. Use a variável da resposta para obter o token
+      const token = loginResponse.data.access_token
+      localStorage.setItem('token', token)
 
-      // Fetch user data
+      // 4. Use a mesma variável 'token' para a próxima chamada
       const userResponse = await axios.get<UserResponse>('/users/me', {
         headers: {
-          Authorization: `Bearer ${Response.data.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
       })
       
@@ -155,7 +162,7 @@ function AuthForm() {
     setError('')
     setSuccess('')
     try {
-      const response = await axios.post<RegisterResponse>('/register', {
+      await axios.post<RegisterResponse>('/register', {
         username,
         password,
       })
