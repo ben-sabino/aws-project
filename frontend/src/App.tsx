@@ -6,7 +6,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import axios from 'axios'
 
 // Configuração global do axios
-axios.defaults.baseURL = 'http://localhost:8000'
+axios.defaults.baseURL = '/api'
 axios.interceptors.response.use(
   response => response,
   error => {
