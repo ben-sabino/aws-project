@@ -133,12 +133,12 @@ function AuthForm() {
         },
       })
 
-      localStorage.setItem('token', response.data.access_token)
+      localStorage.setItem('token', Response.data.access_token)
 
       // Fetch user data
       const userResponse = await axios.get<UserResponse>('/users/me', {
         headers: {
-          Authorization: `Bearer ${response.data.access_token}`,
+          Authorization: `Bearer ${Response.data.access_token}`,
         },
       })
       
