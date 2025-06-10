@@ -10,7 +10,7 @@ RUN npm run build # Este comando deve gerar os arquivos estáticos na pasta 'dis
 # Etapa para o servidor Nginx
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html # Copia os arquivos compilados para o Nginx
-COPY ./frontend/nginx/nginx.conf /etc/nginx/conf.d/default.conf # <--- ADICIONE/MODIFIQUE ESTA LINHA
+COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf # <--- ADICIONE/MODIFIQUE ESTA LINHA
 
 EXPOSE 80 
 CMD ["nginx", "-g", "daemon off;"] # Inicia o Nginx
