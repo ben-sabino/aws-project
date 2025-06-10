@@ -12,5 +12,5 @@ FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html # Copia os arquivos compilados para o Nginx
 COPY ./frontend/nginx/nginx.conf /etc/nginx/conf.d/default.conf # <--- ADICIONE/MODIFIQUE ESTA LINHA
 
-EXPOSE 80 # Nginx vai expor a porta 80 internamente
+EXPOSE 80 
 CMD ["nginx", "-g", "daemon off;"] # Inicia o Nginx
