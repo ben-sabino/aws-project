@@ -40,5 +40,23 @@
         "profile_image": "https://www.sigaa.ufpi.br/sigaa/verFoto?idFoto=6086792&key=70f88581c16a3acd2a952c1c1374d6d6",
         "description": "beijoqueiro",
         "created_at": "2025-06-11T02:11:08.778316"
+    },
+    "Neguim": {
+        "username": "Neguim",
+        "hashed_password": "$2b$12$6DGdpq696N3Oz4iaOf4VxOigPYyE1IRxOboHntqP.5V3HvwWOvuFy",
+        "full_name": "Guilberth de Sousa Bruno",
+        "email": "guilberthbruno1@gmail.com",
+        "profile_image": "",
+        "description": "\u00e9 o neguim n\u00e9 vida",
+        "created_at": "2025-06-11T02:21:49.548639"
+    },
+    "caioburton": {
+        "username": "caioburton",
+        "hashed_password": "$2b$12$imlhuCEJDcAlCKmCFVHhoOVice3VRRShF2Ft5njLG.zfz8zdj3L.C",
+        "full_name": "Caio Burton Alves Alencar Pereira",
+        "email": "caioburton@ufpi.edu.br",
+        "profile_image": "https://www.sigaa.ufpi.br/sigaa/verFoto?idFoto=6287093&key=d6885c8fa97a414472043e17a94b88f7",
+        "description": "Melhor sage do Monte Verde",
+        "created_at": "2025-06-11T02:23:54.651717"
     }
 }
