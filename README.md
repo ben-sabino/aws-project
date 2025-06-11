@@ -103,14 +103,14 @@ O sistema gerencia as seguintes informações do usuário:
 | **Username** | String | Nome de usuário único para login |
 | **Email** | String | Endereço de email válido |
 | **Password** | String | Senha criptografada |
-| **Imagem de Perfil** | File/URL | Foto do perfil do usuário |
+| **Imagem de Perfil** | URL | Foto do perfil do usuário |
 | **Descrição** | Text | Biografia ou descrição pessoal |
 | **Data de Criação** | DateTime | Data e hora de criação da conta |
 
 ### Funcionalidades de Perfil
 - ✅ **Edição Completa** - Todos os campos podem ser editados
 - ✅ **Validação de Dados** - Verificação de formato de email e senha
-- ✅ **Upload de Imagem** - Suporte a formatos JPG, PNG e GIF
+- ✅ **Inserção de Imagem** - Suporte a formatos JPG, PNG e GIF
 - ✅ **Alteração Segura** - Senha atual necessária para alterações críticas
 
 ### 🛠️ Recursos Técnicos
@@ -226,4 +226,4 @@ Se você encontrar algum problema ou tiver dúvidas:
 
 ---
 
-**Desenvolvido por:** [ben-sabino](https://github.com/ben-sabino), [caioburton](https://github.com/CaioBurton) e [GuilberthBruno](https://github.com/GuilberthBruno).
+**Desenvolvido por:** [ben-sabino](https://github.com/ben-sabino), [caioburton](https://github.com/CaioBurton) e [GuilberthBruno](https://github.com/GuilberthBruno)
