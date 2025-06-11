@@ -1,81 +1,237 @@
-# React + FastAPI Login System
+# AWS Project - Sistema de Login
 
-This is a simple login system built with React (frontend) and FastAPI (backend). The system implements token-based authentication.
+Um sistema de login simples construído com React (frontend) e FastAPI (backend), implementando autenticação baseada em tokens JWT.
 
-## Project Structure
+## 🏗️ Arquitetura do Projeto
 
 ```
 .
 ├── backend/
-│   ├── main.py
-│   ├── Dockerfile
-│   └── requirements.txt
+│   ├── main.py          # Servidor FastAPI
+│   ├── Dockerfile       # Container do backend
+│   └── requirements.txt # Dependências Python
 ├── frontend/
 │   ├── src/
-│   │   └── App.tsx
-│   ├── Dockerfile
-│   └── package.json
-├── docker-compose.yml
+│   │   └── App.tsx      # Aplicação React
+│   ├── Dockerfile       # Container do frontend
+│   └── package.json     # Dependências Node.js
+├── docker-compose.yml   # Orquestração dos containers
 └── README.md
 ```
 
-## Running with Docker (Recommended)
+## 🚀 Como Executar o Projeto
 
-The easiest way to run the application is using Docker Compose:
+### Opção 1: Usando Docker Compose (Recomendado)
+
+A maneira mais fácil de executar a aplicação é usando Docker Compose:
 
 ```bash
+# Clone o repositório
+git clone https://github.com/ben-sabino/aws-project.git
+cd aws-project
+
+# Execute o projeto
 docker-compose up --build
 ```
 
-This will start both the frontend and backend services:
-- Frontend: http://localhost:5173
-- Backend: http://localhost:8000
+Isso iniciará ambos os serviços:
+- **Frontend**: [http://localhost:5173](http://localhost:5173)
+- **Backend**: [http://localhost:8000](http://localhost:8000)
 
-## Manual Setup and Running
+### Opção 2: Execução Manual
 
-### Backend Setup
+#### Backend (FastAPI)
 
-1. Create a virtual environment (recommended):
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+1. **Crie um ambiente virtual** (recomendado):
+```bash
+python -m venv venv
+source venv/bin/activate  # No Windows: venv\Scripts\activate
+```
 
-2. Install dependencies:
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
+2. **Instale as dependências**:
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-3. Run the FastAPI server:
-   ```bash
-   uvicorn main:app --reload
-   ```
-   The backend will run on http://localhost:8000
+3. **Execute o servidor FastAPI**:
+```bash
+uvicorn main:app --reload
+```
 
-### Frontend Setup
+O backend estará disponível em [http://localhost:8000](http://localhost:8000)
 
-1. Install dependencies:
-   ```bash
-   cd frontend
-   npm install
-   ```
+#### Frontend (React)
 
-2. Run the development server:
-   ```bash
-   npm run dev
-   ```
-   The frontend will run on http://localhost:5173
+1. **Instale as dependências**:
+```bash
+cd frontend
+npm install
+```
 
-## Test Credentials
+2. **Execute o servidor de desenvolvimento**:
+```bash
+npm run dev
+```
 
-- Username: testuser
-- Password: testpass
+O frontend estará disponível em [http://localhost:5173](http://localhost:5173)
 
-## Features
+## 🔐 Acesso ao Sistema
 
-- User authentication with JWT tokens
-- Material-UI based responsive interface
-- Protected routes
-- Token-based API authentication
-- Docker support for easy deployment 
+### Opção 1: Criar Nova Conta
+Você pode registrar um novo usuário diretamente na aplicação através da tela de registro.
+
+### Opção 2: Conta de Teste
+Para testes rápidos, use as seguintes credenciais pré-configuradas:
+- **Usuário**: `testuser`
+- **Senha**: `testpass`
+
+**Nota**: A conta de teste possui um perfil completo configurado para demonstrar todas as funcionalidades do sistema.
+
+## ✨ Funcionalidades
+
+### 🔐 Autenticação e Autorização
+- ✅ **Sistema de Login/Logout** - Autenticação segura com tokens JWT
+- ✅ **Registro de Usuários** - Permite criação de novos usuários no sistema
+- ✅ **Controle de Acesso** - Proteção de rotas e dados sensíveis
+- ✅ **Sessões Seguras** - Gerenciamento de tokens para manter usuários logados
+
+### 📊 Dashboard do Usuário
+- ✅ **Dashboard Personalizado** - Interface principal após autenticação
+- ✅ **Menu de Navegação** - Acesso fácil a todas as funcionalidades
+- ✅ **Gestão de Perfil** - Edição completa das informações do usuário
+
+## 👤 Perfil de Usuário
+
+O sistema gerencia as seguintes informações do usuário:
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| **Nome Completo** | String | Nome completo do usuário |
+| **Username** | String | Nome de usuário único para login |
+| **Email** | String | Endereço de email válido |
+| **Password** | String | Senha criptografada |
+| **Imagem de Perfil** | File/URL | Foto do perfil do usuário |
+| **Descrição** | Text | Biografia ou descrição pessoal |
+| **Data de Criação** | DateTime | Data e hora de criação da conta |
+
+### Funcionalidades de Perfil
+- ✅ **Edição Completa** - Todos os campos podem ser editados
+- ✅ **Validação de Dados** - Verificação de formato de email e senha
+- ✅ **Upload de Imagem** - Suporte a formatos JPG, PNG e GIF
+- ✅ **Alteração Segura** - Senha atual necessária para alterações críticas
+
+### 🛠️ Recursos Técnicos
+- ✅ **Interface Responsiva** - Baseada em Material-UI
+- ✅ **Rotas Protegidas** - Controle de acesso por autenticação
+- ✅ **API RESTful** - Endpoints organizados e documentados
+- ✅ **Containerização** - Suporte ao Docker para implantação fácil
+
+## 🛠️ Tecnologias Utilizadas
+
+### Backend
+- **FastAPI** - Framework web moderno e rápido para Python
+- **JWT** - JSON Web Tokens para autenticação
+- **Python 3.x** - Linguagem de programação
+
+### Frontend
+- **React** - Biblioteca JavaScript para interfaces de usuário
+- **TypeScript** - Superset tipado do JavaScript
+- **Material-UI** - Biblioteca de componentes React
+- **Vite** - Ferramenta de build rápida
+
+### DevOps
+- **Docker** - Containerização
+- **Docker Compose** - Orquestração de containers
+
+## 📝 Endpoints da API
+
+O backend expõe os seguintes endpoints:
+
+### Autenticação
+- `POST /register` - Registro de novos usuários
+- `POST /login` - Autenticação de usuário
+- `POST /logout` - Logout do usuário
+
+### Perfil do Usuário
+- `GET /profile` - Obter informações do perfil (requer token)
+- `PUT /profile` - Atualizar informações do perfil (requer token)
+- `POST /profile/avatar` - Upload de foto de perfil (requer token)
+- `PUT /profile/password` - Alterar senha (requer token)
+
+### Dashboard
+- `GET /dashboard` - Dados do dashboard (requer token)
+
+### Sistema
+- `GET /docs` - Documentação automática da API (Swagger)
+- `GET /health` - Status de saúde da aplicação
+
+## 🔧 Desenvolvimento
+
+### Estrutura do Backend
+- `main.py`: Contém toda a lógica do servidor FastAPI, incluindo rotas de autenticação e middleware de CORS
+
+### Estrutura do Frontend
+- `src/App.tsx`: Componente principal da aplicação React com lógica de login e interface
+
+## 📦 Scripts Disponíveis
+
+### Frontend
+```bash
+npm run dev     # Inicia o servidor de desenvolvimento
+npm run build   # Constrói a aplicação para produção
+npm run preview # Visualiza a build de produção
+```
+
+### Backend
+```bash
+uvicorn main:app --reload          # Servidor de desenvolvimento
+uvicorn main:app --host 0.0.0.0    # Servidor para produção
+```
+
+## 🐳 Docker
+
+### Construir imagens individualmente
+```bash
+# Backend
+cd backend
+docker build -t aws-project-backend .
+
+# Frontend
+cd frontend
+docker build -t aws-project-frontend .
+```
+
+### Executar containers individualmente
+```bash
+# Backend
+docker run -p 8000:8000 aws-project-backend
+
+# Frontend  
+docker run -p 5173:5173 aws-project-frontend
+```
+
+## 🤝 Contribuindo
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+
+## 🆘 Suporte
+
+Se você encontrar algum problema ou tiver dúvidas:
+
+1. Verifique se todas as dependências estão instaladas
+2. Certifique-se de que as portas 3000, 5173 e 8000 estão livres
+3. Para problemas com Docker, tente `docker-compose down` e depois `docker-compose up --build`
+4. Abra uma issue no repositório do GitHub
+
+---
+
+**Desenvolvido por:** [ben-sabino](https://github.com/ben-sabino)
