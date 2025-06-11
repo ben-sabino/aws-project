@@ -14,5 +14,21 @@
     "mynewuser": {
         "username": "mynewuser",
         "hashed_password": "$2b$12$DPm9s0lEcxYasHB4elP7g.3jrLrt7oNCgNGsr5wP/9rZ.f4dN.aJW"
+    },
+    "Guilberth": {
+        "username": "Guilberth",
+        "hashed_password": "$2b$12$AceoO1Hu3HmXzS5XBK6s0evBBPfxvm9xfNsVyakktXoqLD56kHS9i"
+    },
+    "caio": {
+        "username": "caio",
+        "hashed_password": "$2b$12$oT/.ckVojDAyg3uEm/6Sdu4fbEOiYEeETWPFU8BzQ3lMRIkLiiI7G"
+    },
+    "guilberth": {
+        "username": "guilberth",
+        "hashed_password": "$2b$12$KsbzM.ZcuFsQW4cm5JY77.oRMbkoD27hYCIzzXF69sgssGVdzOTM."
+    },
+    "caioburton": {
+        "username": "caioburton",
+        "hashed_password": "$2b$12$yzIYYdG9QhpLhk9UptmAge2q3..TApux3JXZ.qeNlfhEkPSCo6iae"
     }
 }
