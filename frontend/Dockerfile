@@ -1,11 +1,20 @@
 
 # Etapa de build do frontend (se aplica a projetos React/Vite)
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
+
+# Install Python for native dependency building (required for some npm packages)
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+
 COPY package*.json ./
-RUN npm install
+
+# Clear npm cache and install dependencies with platform-specific Rollup
+RUN npm cache clean --force
+RUN npm install --legacy-peer-deps
+RUN npm install @rollup/rollup-linux-x64-gnu --save-dev --legacy-peer-deps
+
 COPY . .
-RUN npm run build # Este comando deve gerar os arquivos estáticos na pasta 'dist' (ou similar)
+RUN npm run build
 
 # Etapa para o servidor Nginx
 FROM nginx:alpine

@@ -14,5 +14,31 @@
     "mynewuser": {
         "username": "mynewuser",
         "hashed_password": "$2b$12$DPm9s0lEcxYasHB4elP7g.3jrLrt7oNCgNGsr5wP/9rZ.f4dN.aJW"
+    },
+    "guilberth123": {
+        "username": "guilberth123",
+        "hashed_password": "$2b$12$JWn8PtUE59.kzASP/OTFXehZYEyJqG.w2CMT8oknMdA5tHVDw3vUC",
+        "full_name": "Guilberth de Sousa Bruno",
+        "email": "guilberth@gmail.com",
+        "profile_image": "https://s-valorant-api.op.gg/Assets/Characters/EB93336A-449B-9C1B-0A54-A891F7921D69_small.png?image=q_auto:good,f_webp&b=GOCwIw0Yev0G_Y-GNAr-0",
+        "description": "ele \u00e9 guei"
+    },
+    "testuser2": {
+        "username": "testuser2",
+        "hashed_password": "$2b$12$Tm5aQzf1HcfAphWbUrjURuOJH2.tGQIsqcEYQWDDvryd.Eay6idyq",
+        "full_name": "Updated Test User 2",
+        "email": "updated@example.com",
+        "profile_image": "",
+        "description": "Updated description for testing profile update functionality",
+        "created_at": "2025-06-11T02:06:55.949871"
+    },
+    "benjamimdps": {
+        "username": "benjamimdps",
+        "hashed_password": "$2b$12$qfVdlIn6z9a560mZ8qx7fuqmTEHKF7DXQugW8ef6U3K4D54e8ndXm",
+        "full_name": "Benjamim de Pinho Sabino",
+        "email": "benjamimdepois@gmail.com",
+        "profile_image": "https://www.sigaa.ufpi.br/sigaa/verFoto?idFoto=6086792&key=70f88581c16a3acd2a952c1c1374d6d6",
+        "description": "beijoqueiro",
+        "created_at": "2025-06-11T02:11:08.778316"
     }
 }
