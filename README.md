@@ -78,15 +78,7 @@ O frontend estará disponível em [http://localhost:5173](http://localhost:5173)
 
 ## 🔐 Acesso ao Sistema
 
-### Opção 1: Criar Nova Conta
 Você pode registrar um novo usuário diretamente na aplicação através da tela de registro.
-
-### Opção 2: Conta de Teste
-Para testes rápidos, use as seguintes credenciais pré-configuradas:
-- **Usuário**: `testuser`
-- **Senha**: `testpass`
-
-**Nota**: A conta de teste possui um perfil completo configurado para demonstrar todas as funcionalidades do sistema.
 
 ## ✨ Funcionalidades
 
@@ -234,4 +226,4 @@ Se você encontrar algum problema ou tiver dúvidas:
 
 ---
 
-**Desenvolvido por:** [ben-sabino](https://github.com/ben-sabino)
+**Desenvolvido por:** [ben-sabino](https://github.com/ben-sabino), [caioburton](https://github.com/CaioBurton) e [GuilberthBruno](https://github.com/GuilberthBruno).
