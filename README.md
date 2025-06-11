@@ -1,4 +1,4 @@
-# AWS Project - Sistema de Login
+# AWS Project - Sistema de Gerenciamento de Arquivos
 
 Um sistema de login simples construído com React (frontend) e FastAPI (backend), implementando autenticação baseada em tokens JWT.
 
