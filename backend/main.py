@@ -63,7 +63,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-@app.post("/register")
+@app.post("/api/register")
 async def register(user: UserCreate):
     if user.username in fake_users_db:
         raise HTTPException(
@@ -92,7 +92,7 @@ async def register(user: UserCreate):
         "username": user.username
     }
 
-@app.post("/token")
+@app.post("/api/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = fake_users_db.get(form_data.username)
     if not user:
