@@ -3,14 +3,21 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from datetime import datetime, timedelta
-from typing import Optional, Dict, List
-from pydantic import BaseModel, EmailStr
-import json
+from typing import Optional, List
 import os
-from typing import Optional
 import io
+
+# Importar módulos do banco de dados
+from database import get_db, create_tables
+from models import UserCreate, UserProfile, UserUpdate, PasswordUpdate, FileInfo, StorageUsage, FileUploadResponse
+from crud import (
+    get_user_by_username, 
+    create_user, 
+    update_user, 
+    update_user_password,
+    verify_password
+)
 
 # Importar o gerenciador de armazenamento AWS
 from aws_storage import storage_manager
@@ -19,7 +26,6 @@ from aws_storage import storage_manager
 SECRET_KEY = "your-secret-key-keep-it-secret"  # In production, use environment variable
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-USERS_FILE = "users.json"
 
 app = FastAPI()
 
@@ -33,76 +39,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Password context for hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-def load_users() -> Dict:
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, 'r') as f:
-            return json.load(f)
-    return {
-        "testuser": {
-            "username": "testuser",
-            "hashed_password": pwd_context.hash("testpass"),
-            "full_name": "Test User",
-            "email": "test@example.com",
-            "profile_image": "",
-            "description": "Usuario de teste",
-            "created_at": datetime.utcnow().isoformat(),
-        }
-    }
+# Criar tabelas na inicialização
+@app.on_event("startup")
+async def startup_event():
+    create_tables()
 
-def save_users(users: Dict):
-    with open(USERS_FILE, 'w') as f:
-        json.dump(users, f, indent=4)
-
-# Load users from file
-fake_users_db = load_users()
-
-# Pydantic models
-class UserCreate(BaseModel):
-    username: str
-    password: str
-    full_name: str
-    email: str  # Keep as EmailStr for validation during creation
-    description: Optional[str] = ""
-
-class UserProfile(BaseModel):
-    username: str
-    full_name: str
-    email: str  # Changed from EmailStr to str to handle legacy data
-    profile_image: Optional[str] = ""
-    description: Optional[str] = ""
-    created_at: str
-
-class UserUpdate(BaseModel):
-    full_name: Optional[str] = None
-    email: Optional[str] = None  # Changed from EmailStr to str
-    profile_image: Optional[str] = None
-    description: Optional[str] = None
-
-class PasswordUpdate(BaseModel):
-    current_password: str
-    new_password: str
-
-# Modelos para gerenciamento de arquivos
-class FileInfo(BaseModel):
-    key: str
-    name: str
-    size: int
-    last_modified: str
-    etag: str
-    content_type: Optional[str] = None
-
-class StorageUsage(BaseModel):
-    total_size: int
-    file_count: int
-    total_size_mb: float
-
-class FileUploadResponse(BaseModel):
-    file: FileInfo
-    message: str
+# Função para criar token de acesso
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
@@ -115,26 +60,25 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 @app.post("/api/register")
-async def register(user: UserCreate):
-    if user.username in fake_users_db:
+async def register(user: UserCreate, db = Depends(get_db)):
+    # Verificar se usuário já existe
+    existing_user = get_user_by_username(db, user.username)
+    if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already registered"
         )
     
-    hashed_password = pwd_context.hash(user.password)
-    fake_users_db[user.username] = {
-        "username": user.username,
-        "hashed_password": hashed_password,
-        "full_name": user.full_name,
-        "email": user.email,
-        "profile_image": "",
-        "description": user.description,
-        "created_at": datetime.utcnow().isoformat(),
-    }
+    # Verificar se email já existe
+    existing_email = get_user_by_email(db, user.email)
+    if existing_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
     
-    # Save users to file
-    save_users(fake_users_db)
+    # Criar usuário no banco
+    db_user = create_user(db, user)
     
     # Create access token for the new user
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -149,8 +93,8 @@ async def register(user: UserCreate):
     }
 
 @app.post("/api/token")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = fake_users_db.get(form_data.username)
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db = Depends(get_db)):
+    user = get_user_by_username(db, form_data.username)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -158,7 +102,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    if not pwd_context.verify(form_data.password, user["hashed_password"]):
+    if not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -167,12 +111,12 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user["username"]}, expires_delta=access_token_expires
+        data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/api/users/me", response_model=UserProfile)
-async def read_users_me(token: str = Depends(oauth2_scheme)):
+async def read_users_me(token: str = Depends(oauth2_scheme), db = Depends(get_db)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -181,22 +125,14 @@ async def read_users_me(token: str = Depends(oauth2_scheme)):
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     
-    user = fake_users_db.get(username)
+    user = get_user_by_username(db, username)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Handle legacy users who might not have all fields
-    return UserProfile(
-        username=user["username"],
-        full_name=user.get("full_name", ""),
-        email=user.get("email", ""),
-        profile_image=user.get("profile_image", ""),
-        description=user.get("description", ""),
-        created_at=user.get("created_at", datetime.utcnow().isoformat())
-    )
+    return user
 
 @app.put("/api/users/me", response_model=UserProfile)
-async def update_user_profile(user_update: UserUpdate, token: str = Depends(oauth2_scheme)):
+async def update_user_profile(user_update: UserUpdate, token: str = Depends(oauth2_scheme), db = Depends(get_db)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -205,33 +141,15 @@ async def update_user_profile(user_update: UserUpdate, token: str = Depends(oaut
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     
-    user = fake_users_db.get(username)
-    if user is None:
+    # Atualizar usuário no banco
+    updated_user = update_user(db, username, user_update)
+    if updated_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Update only provided fields
-    if user_update.full_name is not None:
-        user["full_name"] = user_update.full_name
-    if user_update.email is not None:
-        user["email"] = user_update.email
-    if user_update.profile_image is not None:
-        user["profile_image"] = user_update.profile_image
-    if user_update.description is not None:
-        user["description"] = user_update.description
-      # Save changes
-    save_users(fake_users_db)
-    
-    return UserProfile(
-        username=user["username"],
-        full_name=user.get("full_name", ""),
-        email=user.get("email", ""),
-        profile_image=user.get("profile_image", ""),
-        description=user.get("description", ""),
-        created_at=user.get("created_at", datetime.utcnow().isoformat())
-    )
+    return updated_user
 
 @app.put("/api/users/me/password")
-async def update_user_password(password_update: PasswordUpdate, token: str = Depends(oauth2_scheme)):
+async def update_user_password(password_update: PasswordUpdate, token: str = Depends(oauth2_scheme), db = Depends(get_db)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -240,22 +158,20 @@ async def update_user_password(password_update: PasswordUpdate, token: str = Dep
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     
-    user = fake_users_db.get(username)
+    user = get_user_by_username(db, username)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     
     # Verify current password
-    if not pwd_context.verify(password_update.current_password, user["hashed_password"]):
+    if not verify_password(password_update.current_password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Current password is incorrect"
         )
     
     # Update password
-    user["hashed_password"] = pwd_context.hash(password_update.new_password)
-    
-    # Save changes
-    save_users(fake_users_db)
+    new_hashed_password = get_password_hash(password_update.new_password)
+    update_user_password(db, username, new_hashed_password)
     
     return {"message": "Password updated successfully"}
 
