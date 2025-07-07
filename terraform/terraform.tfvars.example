@@ -1,0 +1,13 @@
+# Arquivo de exemplo para variáveis sensíveis
+# Copie este arquivo para terraform.tfvars e configure os valores
+
+# Configurações do banco de dados
+db_password = "your-secure-password-here"
+db_username = "postgres"
+db_name     = "awsproject"
+
+# Região AWS
+aws_region = "us-east-1"
+
+# Nome do projeto
+project_name = "aws-project"

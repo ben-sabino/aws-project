@@ -1,6 +1,6 @@
 # AWS Project - Sistema de Gerenciamento de Arquivos
 
-Um sistema completo de gerenciamento de arquivos na nuvem AWS, construído com React (frontend) e FastAPI (backend), implementando autenticação baseada em tokens JWT e integração com Amazon S3.
+Um sistema completo de gerenciamento de arquivos na nuvem AWS, construído com React (frontend), FastAPI (backend), PostgreSQL (RDS) e integração com Amazon S3. O projeto implementa autenticação baseada em tokens JWT e utiliza infraestrutura como código com Terraform.
 
 ## 🏗️ Arquitetura do Projeto
 
@@ -8,18 +8,26 @@ Um sistema completo de gerenciamento de arquivos na nuvem AWS, construído com R
 .
 ├── backend/
 │   ├── main.py          # Servidor FastAPI
+│   ├── database.py      # Configuração PostgreSQL
 │   ├── aws_storage.py   # Gerenciador de arquivos AWS S3
 │   ├── Dockerfile       # Container do backend
 │   ├── requirements.txt # Dependências Python
-│   └── env.example     # Exemplo de variáveis de ambiente
+│   └── .env.example     # Exemplo de variáveis de ambiente
 ├── frontend/
 │   ├── src/
 │   │   ├── App.tsx      # Aplicação React
 │   │   └── components/
 │   │       └── FileManager.tsx # Componente de gerenciamento de arquivos
 │   ├── Dockerfile       # Container do frontend
+│   ├── nginx/
+│   │   └── nginx.conf   # Configuração do proxy reverso
 │   └── package.json     # Dependências Node.js
+├── terraform/
+│   ├── main.tf          # Infraestrutura AWS (RDS)
+│   ├── variables.tf     # Variáveis do Terraform
+│   └── README.md        # Documentação da infraestrutura
 ├── docker-compose.yml   # Orquestração dos containers
+├── docker-compose.dev.yml # Ambiente de desenvolvimento
 └── README.md
 ```
 
@@ -27,12 +35,33 @@ Um sistema completo de gerenciamento de arquivos na nuvem AWS, construído com R
 
 ### Pré-requisitos
 
-1. **Conta AWS** com acesso ao S3
-2. **Bucket S3** criado para armazenamento de arquivos
-3. **Credenciais AWS** configuradas
+1. **Conta AWS** com acesso ao S3 e RDS
+2. **Terraform** instalado (>= 1.0)
+3. **AWS CLI** configurado
+4. **Docker** e **Docker Compose**
 
-### Configuração AWS
+### 1. Configuração da Infraestrutura AWS
 
+#### Deploy do RDS PostgreSQL
+```bash
+# 1. Configure suas credenciais AWS
+aws configure
+
+# 2. Configure o Terraform
+cd terraform
+cp terraform.tfvars.example terraform.tfvars
+# Edite terraform.tfvars com suas configurações
+
+# 3. Deploy da infraestrutura
+# No Windows:
+..\deploy-infrastructure.bat
+
+# No Linux/macOS:
+chmod +x ../deploy-infrastructure.sh
+../deploy-infrastructure.sh
+```
+
+#### Configuração Manual do S3
 1. **Crie um bucket S3**:
    - Acesse o console AWS S3
    - Crie um novo bucket (ex: `my-file-storage-bucket`)
@@ -42,32 +71,50 @@ Um sistema completo de gerenciamento de arquivos na nuvem AWS, construído com R
    - Crie um usuário IAM com permissões para S3
    - Obtenha as credenciais (Access Key ID e Secret Access Key)
 
-3. **Configure as variáveis de ambiente**:
-   ```bash
-   # Copie o arquivo de exemplo
-   cp backend/env.example backend/.env
-   
-   # Edite o arquivo .env com suas credenciais
-   AWS_ACCESS_KEY_ID=your_access_key_id
-   AWS_SECRET_ACCESS_KEY=your_secret_access_key
-   AWS_REGION=us-east-1
-   AWS_S3_BUCKET=my-file-storage-bucket
-   ```
-
-### Opção 1: Usando Docker Compose (Recomendado)
-
-A maneira mais fácil de executar a aplicação é usando Docker Compose:
+### 2. Configuração do Ambiente
 
 ```bash
-# Clone o repositório
+# Copie o arquivo de exemplo do backend
+cp backend/.env.example backend/.env
+
+# Edite o arquivo .env com suas credenciais
+# DATABASE_URL (obtido do Terraform output)
+DATABASE_URL=postgresql://postgres:sua_senha@seu_endpoint:5432/awsproject
+
+# Credenciais AWS
+AWS_ACCESS_KEY_ID=your_access_key_id
+AWS_SECRET_ACCESS_KEY=your_secret_access_key
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=my-file-storage-bucket
+```
+
+### 3. Migração de Dados (Se aplicável)
+
+Se você já tem dados no formato JSON, pode migrar para PostgreSQL:
+
+```bash
+# Execute o script de migração
+cd backend
+python database.py
+```
+
+### 4. Executar a Aplicação
+
+#### Opção 1: Desenvolvimento com PostgreSQL Local
+
+```bash
+# Execute com PostgreSQL local
+docker-compose -f docker-compose.dev.yml up --build
+```
+
+#### Opção 2: Usando Docker Compose (Recomendado)
+
+```bash
+# Clone o repositório (se ainda não clonou)
 git clone https://github.com/ben-sabino/aws-project.git
 cd aws-project
 
-# Configure as variáveis de ambiente
-cp backend/env.example backend/.env
-# Edite o arquivo .env com suas credenciais AWS
-
-# Execute o projeto
+# Execute o projeto completo
 docker-compose up --build
 ```
 
