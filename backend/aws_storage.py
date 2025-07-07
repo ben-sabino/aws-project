@@ -4,10 +4,13 @@ from datetime import datetime
 from typing import List, Dict, Optional
 from botocore.exceptions import ClientError, NoCredentialsError
 import logging
+from dotenv import load_dotenv
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+load_dotenv()
 
 class AWSStorageManager:
     def __init__(self):
@@ -189,6 +192,15 @@ class AWSStorageManager:
         except Exception as e:
             logger.error(f"Erro ao calcular uso de armazenamento: {e}")
             raise
+
+    def rename_file(self, username: str, old_name: str, new_name: str) -> bool:
+        """Renomeia um arquivo do S3 (copia e deleta o antigo)"""
+        file_data = self.download_file(username, old_name)
+        if not file_data:
+            return False
+        self.upload_file(username, file_data['content'], new_name, file_data.get('content_type'))
+        self.delete_file(username, old_name)
+        return True
 
 # Instância global do gerenciador de armazenamento
 storage_manager = AWSStorageManager() 

@@ -8,6 +8,9 @@ import os
 import sys
 import boto3
 from botocore.exceptions import NoCredentialsError, ClientError
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def test_aws_credentials():
     """Testa se as credenciais AWS estão configuradas"""

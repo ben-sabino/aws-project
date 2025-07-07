@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Body
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -385,6 +385,28 @@ async def get_file_url(
         return {"url": url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao gerar URL: {str(e)}")
+
+@app.put("/api/files/rename")
+async def rename_file(
+    old_name: str = Body(...),
+    new_name: str = Body(...),
+    token: str = Depends(oauth2_scheme)
+):
+    """Renomeia um arquivo do S3 (copia e deleta o antigo)"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    try:
+        ok = storage_manager.rename_file(username, old_name, new_name)
+        if not ok:
+            raise HTTPException(status_code=404, detail="Arquivo original não encontrado")
+        return {"message": "Arquivo renomeado com sucesso"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao renomear arquivo: {str(e)}")
 
 @app.get("/api/storage/usage", response_model=StorageUsage)
 async def get_storage_usage(token: str = Depends(oauth2_scheme)):
