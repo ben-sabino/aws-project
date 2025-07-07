@@ -7,10 +7,6 @@
         "username": "myuser",
         "hashed_password": "$2b$12$HI1aTWPlsgVhWPrSxWMvd.VMwQ5mNGqMxr9YsNz7WsECweDI7TI4m"
     },
-    "benjas": {
-        "username": "benjas",
-        "hashed_password": "$2b$12$PEViiYW2PmEM7IEXCZHD6eIUpJ.NaxxJVZ.mPGacIEZMFGmmwQJYy"
-    },
     "mynewuser": {
         "username": "mynewuser",
         "hashed_password": "$2b$12$DPm9s0lEcxYasHB4elP7g.3jrLrt7oNCgNGsr5wP/9rZ.f4dN.aJW"
@@ -32,15 +28,6 @@
         "description": "Updated description for testing profile update functionality",
         "created_at": "2025-06-11T02:06:55.949871"
     },
-    "benjamimdps": {
-        "username": "benjamimdps",
-        "hashed_password": "$2b$12$qfVdlIn6z9a560mZ8qx7fuqmTEHKF7DXQugW8ef6U3K4D54e8ndXm",
-        "full_name": "Benjamim de Pinho Sabino",
-        "email": "benjamimdepois@gmail.com",
-        "profile_image": "https://www.sigaa.ufpi.br/sigaa/verFoto?idFoto=6086792&key=70f88581c16a3acd2a952c1c1374d6d6",
-        "description": "beijoqueiro",
-        "created_at": "2025-06-11T02:11:08.778316"
-    },
     "Neguim": {
         "username": "Neguim",
         "hashed_password": "$2b$12$6DGdpq696N3Oz4iaOf4VxOigPYyE1IRxOboHntqP.5V3HvwWOvuFy",
@@ -58,5 +45,14 @@
         "profile_image": "https://www.sigaa.ufpi.br/sigaa/verFoto?idFoto=6287093&key=d6885c8fa97a414472043e17a94b88f7",
         "description": "Melhor sage do Monte Verde",
         "created_at": "2025-06-11T02:23:54.651717"
+    },
+    "benjas": {
+        "username": "benjas",
+        "hashed_password": "$2b$12$APay4LhpQUlOfeLDSSfXE.iBSav/iXgYdbqqwCYhCEU3V4SVg6I5K",
+        "full_name": "benjas",
+        "email": "benjas@mail.com",
+        "profile_image": "",
+        "description": "",
+        "created_at": "2025-07-07T17:45:52.956289"
     }
 }

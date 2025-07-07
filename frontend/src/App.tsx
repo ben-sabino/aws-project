@@ -33,9 +33,13 @@ import {
   Edit as EditIcon,
   Lock as LockIcon,
   Menu as MenuIcon,
-  ExitToApp as ExitToAppIcon
+  ExitToApp as ExitToAppIcon,
+  Cloud as CloudIcon
 } from '@mui/icons-material'
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'
+
+// Importar o componente FileManager
+import FileManager from './components/FileManager'
 
 import axios from 'axios'
 
@@ -207,6 +211,7 @@ function Dashboard() {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
+    { id: 'files', label: 'Meus Arquivos', icon: <CloudIcon /> },
     { id: 'profile', label: 'Perfil', icon: <PersonIcon /> },
     { id: 'settings', label: 'Configurações', icon: <SettingsIcon /> },
   ]
@@ -264,6 +269,8 @@ function Dashboard() {
             </Grid>
           </Box>
         )
+      case 'files':
+        return <FileManager />
       case 'profile':
         return (
           <Box>

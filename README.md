@@ -1,6 +1,6 @@
 # AWS Project - Sistema de Gerenciamento de Arquivos
 
-Um sistema de login simples construído com React (frontend) e FastAPI (backend), implementando autenticação baseada em tokens JWT.
+Um sistema completo de gerenciamento de arquivos na nuvem AWS, construído com React (frontend) e FastAPI (backend), implementando autenticação baseada em tokens JWT e integração com Amazon S3.
 
 ## 🏗️ Arquitetura do Projeto
 
@@ -8,11 +8,15 @@ Um sistema de login simples construído com React (frontend) e FastAPI (backend)
 .
 ├── backend/
 │   ├── main.py          # Servidor FastAPI
+│   ├── aws_storage.py   # Gerenciador de arquivos AWS S3
 │   ├── Dockerfile       # Container do backend
-│   └── requirements.txt # Dependências Python
+│   ├── requirements.txt # Dependências Python
+│   └── env.example     # Exemplo de variáveis de ambiente
 ├── frontend/
 │   ├── src/
-│   │   └── App.tsx      # Aplicação React
+│   │   ├── App.tsx      # Aplicação React
+│   │   └── components/
+│   │       └── FileManager.tsx # Componente de gerenciamento de arquivos
 │   ├── Dockerfile       # Container do frontend
 │   └── package.json     # Dependências Node.js
 ├── docker-compose.yml   # Orquestração dos containers
@@ -20,6 +24,35 @@ Um sistema de login simples construído com React (frontend) e FastAPI (backend)
 ```
 
 ## 🚀 Como Executar o Projeto
+
+### Pré-requisitos
+
+1. **Conta AWS** com acesso ao S3
+2. **Bucket S3** criado para armazenamento de arquivos
+3. **Credenciais AWS** configuradas
+
+### Configuração AWS
+
+1. **Crie um bucket S3**:
+   - Acesse o console AWS S3
+   - Crie um novo bucket (ex: `my-file-storage-bucket`)
+   - Configure as permissões adequadas
+
+2. **Configure as credenciais AWS**:
+   - Crie um usuário IAM com permissões para S3
+   - Obtenha as credenciais (Access Key ID e Secret Access Key)
+
+3. **Configure as variáveis de ambiente**:
+   ```bash
+   # Copie o arquivo de exemplo
+   cp backend/env.example backend/.env
+   
+   # Edite o arquivo .env com suas credenciais
+   AWS_ACCESS_KEY_ID=your_access_key_id
+   AWS_SECRET_ACCESS_KEY=your_secret_access_key
+   AWS_REGION=us-east-1
+   AWS_S3_BUCKET=my-file-storage-bucket
+   ```
 
 ### Opção 1: Usando Docker Compose (Recomendado)
 
@@ -29,6 +62,10 @@ A maneira mais fácil de executar a aplicação é usando Docker Compose:
 # Clone o repositório
 git clone https://github.com/ben-sabino/aws-project.git
 cd aws-project
+
+# Configure as variáveis de ambiente
+cp backend/env.example backend/.env
+# Edite o arquivo .env com suas credenciais AWS
 
 # Execute o projeto
 docker-compose up --build
@@ -48,13 +85,19 @@ python -m venv venv
 source venv/bin/activate  # No Windows: venv\Scripts\activate
 ```
 
-2. **Instale as dependências**:
+2. **Configure as variáveis de ambiente**:
 ```bash
 cd backend
+cp env.example .env
+# Edite o arquivo .env com suas credenciais AWS
+```
+
+3. **Instale as dependências**:
+```bash
 pip install -r requirements.txt
 ```
 
-3. **Execute o servidor FastAPI**:
+4. **Execute o servidor FastAPI**:
 ```bash
 uvicorn main:app --reload
 ```
@@ -88,6 +131,16 @@ Você pode registrar um novo usuário diretamente na aplicação através da tel
 - ✅ **Controle de Acesso** - Proteção de rotas e dados sensíveis
 - ✅ **Sessões Seguras** - Gerenciamento de tokens para manter usuários logados
 
+### 📁 Gerenciamento de Arquivos AWS
+- ✅ **Upload de Arquivos** - Envio seguro para Amazon S3
+- ✅ **Download de Arquivos** - Download direto dos arquivos
+- ✅ **Listagem de Arquivos** - Visualização organizada dos arquivos
+- ✅ **Exclusão de Arquivos** - Remoção segura de arquivos
+- ✅ **Isolamento por Usuário** - Cada usuário tem sua pasta separada
+- ✅ **Informações de Uso** - Estatísticas de armazenamento
+- ✅ **Progresso de Upload** - Barra de progresso em tempo real
+- ✅ **Validação de Tamanho** - Limite de 100MB por arquivo
+
 ### 📊 Dashboard do Usuário
 - ✅ **Dashboard Personalizado** - Interface principal após autenticação
 - ✅ **Menu de Navegação** - Acesso fácil a todas as funcionalidades
@@ -118,12 +171,14 @@ O sistema gerencia as seguintes informações do usuário:
 - ✅ **Rotas Protegidas** - Controle de acesso por autenticação
 - ✅ **API RESTful** - Endpoints organizados e documentados
 - ✅ **Containerização** - Suporte ao Docker para implantação fácil
+- ✅ **Integração AWS S3** - Armazenamento seguro na nuvem
 
 ## 🛠️ Tecnologias Utilizadas
 
 ### Backend
 - **FastAPI** - Framework web moderno e rápido para Python
 - **JWT** - JSON Web Tokens para autenticação
+- **Boto3** - SDK AWS para Python
 - **Python 3.x** - Linguagem de programação
 
 ### Frontend
@@ -131,6 +186,10 @@ O sistema gerencia as seguintes informações do usuário:
 - **TypeScript** - Superset tipado do JavaScript
 - **Material-UI** - Biblioteca de componentes React
 - **Vite** - Ferramenta de build rápida
+
+### Cloud
+- **Amazon S3** - Armazenamento de objetos na nuvem
+- **AWS IAM** - Gerenciamento de identidade e acesso
 
 ### DevOps
 - **Docker** - Containerização
@@ -141,18 +200,21 @@ O sistema gerencia as seguintes informações do usuário:
 O backend expõe os seguintes endpoints:
 
 ### Autenticação
-- `POST /register` - Registro de novos usuários
-- `POST /login` - Autenticação de usuário
-- `POST /logout` - Logout do usuário
+- `POST /api/register` - Registro de novos usuários
+- `POST /api/token` - Autenticação de usuário
 
 ### Perfil do Usuário
-- `GET /profile` - Obter informações do perfil (requer token)
-- `PUT /profile` - Atualizar informações do perfil (requer token)
-- `POST /profile/avatar` - Upload de foto de perfil (requer token)
-- `PUT /profile/password` - Alterar senha (requer token)
+- `GET /api/users/me` - Obter informações do perfil (requer token)
+- `PUT /api/users/me` - Atualizar informações do perfil (requer token)
+- `PUT /api/users/me/password` - Alterar senha (requer token)
 
-### Dashboard
-- `GET /dashboard` - Dados do dashboard (requer token)
+### Gerenciamento de Arquivos
+- `GET /api/files` - Listar arquivos do usuário (requer token)
+- `POST /api/files/upload` - Upload de arquivo (requer token)
+- `GET /api/files/download/{file_name}` - Download de arquivo (requer token)
+- `DELETE /api/files/{file_name}` - Deletar arquivo (requer token)
+- `GET /api/files/{file_name}/url` - Gerar URL pré-assinada (requer token)
+- `GET /api/storage/usage` - Estatísticas de uso (requer token)
 
 ### Sistema
 - `GET /docs` - Documentação automática da API (Swagger)
@@ -161,10 +223,12 @@ O backend expõe os seguintes endpoints:
 ## 🔧 Desenvolvimento
 
 ### Estrutura do Backend
-- `main.py`: Contém toda a lógica do servidor FastAPI, incluindo rotas de autenticação e middleware de CORS
+- `main.py`: Contém toda a lógica do servidor FastAPI, incluindo rotas de autenticação e gerenciamento de arquivos
+- `aws_storage.py`: Gerenciador de arquivos AWS S3 com todas as operações de CRUD
 
 ### Estrutura do Frontend
 - `src/App.tsx`: Componente principal da aplicação React com lógica de login e interface
+- `src/components/FileManager.tsx`: Componente especializado para gerenciamento de arquivos
 
 ## 📦 Scripts Disponíveis
 
@@ -198,9 +262,51 @@ docker build -t aws-project-frontend .
 ```bash
 # Backend
 docker run -p 8000:8000 aws-project-backend
+```
 
-# Frontend  
-docker run -p 5173:5173 aws-project-frontend
+## 🔒 Segurança
+
+### AWS S3
+- Cada usuário tem sua pasta isolada no S3
+- URLs pré-assinadas para download seguro
+- Validação de tamanho de arquivo (máximo 100MB)
+- Controle de acesso baseado em tokens JWT
+
+### Autenticação
+- Tokens JWT com expiração configurável
+- Senhas criptografadas com bcrypt
+- Middleware CORS configurado adequadamente
+
+## 💰 Custos AWS
+
+O sistema utiliza os seguintes serviços AWS:
+- **S3**: Armazenamento de objetos (custo baseado no uso)
+- **IAM**: Gerenciamento de identidade (gratuito)
+
+### Estimativa de Custos
+- **S3 Standard**: ~$0.023 por GB/mês
+- **Transferência de dados**: ~$0.09 por GB (saída)
+- **Operações**: ~$0.0004 por 1.000 requisições
+
+Para uso pessoal ou pequenas empresas, os custos são mínimos.
+
+## 🚀 Deploy em Produção
+
+### Configuração de Produção
+1. Configure um bucket S3 dedicado
+2. Configure as variáveis de ambiente de produção
+3. Use HTTPS em produção
+4. Configure um domínio personalizado
+5. Configure monitoramento e logs
+
+### Variáveis de Ambiente de Produção
+```bash
+AWS_ACCESS_KEY_ID=your_production_access_key
+AWS_SECRET_ACCESS_KEY=your_production_secret_key
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=your-production-bucket
+SECRET_KEY=your-production-secret-key
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
 ## 🤝 Contribuindo
