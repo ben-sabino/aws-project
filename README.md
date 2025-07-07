@@ -88,10 +88,19 @@ Você pode registrar um novo usuário diretamente na aplicação através da tel
 - ✅ **Controle de Acesso** - Proteção de rotas e dados sensíveis
 - ✅ **Sessões Seguras** - Gerenciamento de tokens para manter usuários logados
 
-### 📊 Dashboard do Usuário
+### � Gerenciamento de Arquivos
+- ✅ **Upload de Arquivos** - Envio seguro de arquivos para o servidor
+- ✅ **Listagem de Arquivos** - Visualização de todos os arquivos do usuário
+- ✅ **Pesquisa de Arquivos** - Busca por nome de arquivo
+- ✅ **Download de Arquivos** - Download seguro dos arquivos enviados
+- ✅ **Exclusão de Arquivos** - Remoção de arquivos não desejados
+- ✅ **Informações Detalhadas** - Tamanho, tipo e data de upload
+
+### �📊 Dashboard do Usuário
 - ✅ **Dashboard Personalizado** - Interface principal após autenticação
 - ✅ **Menu de Navegação** - Acesso fácil a todas as funcionalidades
 - ✅ **Gestão de Perfil** - Edição completa das informações do usuário
+- ✅ **Resumo de Arquivos** - Estatísticas dos arquivos enviados
 
 ## 👤 Perfil de Usuário
 
@@ -141,22 +150,23 @@ O sistema gerencia as seguintes informações do usuário:
 O backend expõe os seguintes endpoints:
 
 ### Autenticação
-- `POST /register` - Registro de novos usuários
-- `POST /login` - Autenticação de usuário
-- `POST /logout` - Logout do usuário
+- `POST /api/register` - Registro de novos usuários
+- `POST /api/token` - Autenticação de usuário
 
 ### Perfil do Usuário
-- `GET /profile` - Obter informações do perfil (requer token)
-- `PUT /profile` - Atualizar informações do perfil (requer token)
-- `POST /profile/avatar` - Upload de foto de perfil (requer token)
-- `PUT /profile/password` - Alterar senha (requer token)
+- `GET /api/users/me` - Obter informações do perfil (requer token)
+- `PUT /api/users/me` - Atualizar informações do perfil (requer token)
+- `PUT /api/users/me/password` - Alterar senha (requer token)
 
-### Dashboard
-- `GET /dashboard` - Dados do dashboard (requer token)
+### Gerenciamento de Arquivos
+- `POST /api/files/upload` - Upload de arquivo (requer token)
+- `GET /api/files` - Listar arquivos do usuário (requer token)
+- `GET /api/files/{file_id}` - Download de arquivo específico (requer token)
+- `DELETE /api/files/{file_id}` - Excluir arquivo (requer token)
 
 ### Sistema
 - `GET /docs` - Documentação automática da API (Swagger)
-- `GET /health` - Status de saúde da aplicação
+- `GET /uploads/{filename}` - Servir arquivos estáticos
 
 ## 🔧 Desenvolvimento
 

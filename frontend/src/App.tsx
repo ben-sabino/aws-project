@@ -24,7 +24,17 @@ import {
   List,
   ListItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  InputAdornment,
+  CircularProgress
 } from '@mui/material'
 import {
   Dashboard as DashboardIcon,
@@ -33,7 +43,12 @@ import {
   Edit as EditIcon,
   Lock as LockIcon,
   Menu as MenuIcon,
-  ExitToApp as ExitToAppIcon
+  ExitToApp as ExitToAppIcon,
+  CloudUpload as CloudUploadIcon,
+  Folder as FolderIcon,
+  Download as DownloadIcon,
+  Delete as DeleteIcon,
+  Search as SearchIcon
 } from '@mui/icons-material'
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'
 
@@ -73,6 +88,21 @@ interface RegisterResponse {
   username: string;
 }
 
+interface FileInfo {
+  id: string;
+  filename: string;
+  original_filename: string;
+  size: number;
+  content_type: string;
+  upload_date: string;
+  username: string;
+}
+
+interface FileSearchResponse {
+  files: FileInfo[];
+  total: number;
+}
+
 function HomePage() {
   const navigate = useNavigate()
   return (
@@ -109,6 +139,11 @@ function Dashboard() {
   const [selectedMenuItem, setSelectedMenuItem] = useState('dashboard')
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
+  const [files, setFiles] = useState<FileInfo[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -132,6 +167,8 @@ function Dashboard() {
 
     // Fetch user data
     fetchUserData()
+    // Fetch files
+    fetchFiles()
   }, [navigate])
 
   const fetchUserData = async () => {
@@ -152,6 +189,106 @@ function Dashboard() {
     } catch (err) {
       console.error('Error fetching user data:', err)
     }
+  }
+
+  const fetchFiles = async (search?: string) => {
+    try {
+      const token = localStorage.getItem('token')
+      const params = search ? { search } : {}
+      const response = await axios.get<FileSearchResponse>('/files', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params
+      })
+      setFiles(response.data.files)
+    } catch (err) {
+      console.error('Error fetching files:', err)
+    }
+  }
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return
+
+    setUploading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+
+      await axios.post('/files/upload', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+
+      setSuccess('Arquivo enviado com sucesso!')
+      setUploadDialogOpen(false)
+      setSelectedFile(null)
+      fetchFiles()
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Erro ao enviar arquivo')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleFileDownload = async (fileId: string, filename: string) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`/files/${fileId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: 'blob'
+      })
+
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data as ArrayBuffer]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', filename)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Erro ao baixar arquivo')
+    }
+  }
+
+  const handleFileDelete = async (fileId: string) => {
+    if (!window.confirm('Tem certeza que deseja excluir este arquivo?')) {
+      return
+    }
+
+    try {
+      const token = localStorage.getItem('token')
+      await axios.delete(`/files/${fileId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      setSuccess('Arquivo excluído com sucesso!')
+      fetchFiles()
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Erro ao excluir arquivo')
+    }
+  }
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    fetchFiles(query)
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
   const handleLogout = () => {
@@ -207,6 +344,7 @@ function Dashboard() {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
+    { id: 'files', label: 'Meus Arquivos', icon: <FolderIcon /> },
     { id: 'profile', label: 'Perfil', icon: <PersonIcon /> },
     { id: 'settings', label: 'Configurações', icon: <SettingsIcon /> },
   ]
@@ -240,6 +378,22 @@ function Dashboard() {
                     <Box sx={{ mt: 2 }}>
                       <Button
                         variant="outlined"
+                        startIcon={<CloudUploadIcon />}
+                        onClick={() => setUploadDialogOpen(true)}
+                        sx={{ mr: 1, mb: 1 }}
+                      >
+                        Enviar Arquivo
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        startIcon={<FolderIcon />}
+                        onClick={() => setSelectedMenuItem('files')}
+                        sx={{ mr: 1, mb: 1 }}
+                      >
+                        Meus Arquivos
+                      </Button>
+                      <Button
+                        variant="outlined"
                         startIcon={<EditIcon />}
                         onClick={() => {
                           setSelectedMenuItem('profile')
@@ -249,19 +403,113 @@ function Dashboard() {
                       >
                         Editar Perfil
                       </Button>
-                      <Button
-                        variant="outlined"
-                        startIcon={<LockIcon />}
-                        onClick={() => setPasswordDialogOpen(true)}
-                        sx={{ mb: 1 }}
-                      >
-                        Alterar Senha
-                      </Button>
                     </Box>
                   </CardContent>
                 </Card>
               </Grid>
+              <Grid item xs={12}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" sx={{ color: 'black', mb: 2 }}>
+                      Resumo dos Arquivos
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: 'black' }}>
+                      Total de arquivos: {files.length}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
             </Grid>
+          </Box>
+        )
+      case 'files':
+        return (
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h4" sx={{ color: 'black' }}>
+                Meus Arquivos
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<CloudUploadIcon />}
+                onClick={() => setUploadDialogOpen(true)}
+              >
+                Enviar Arquivo
+              </Button>
+            </Box>
+            
+            <Box sx={{ mb: 3 }}>
+              <TextField
+                fullWidth
+                placeholder="Pesquisar arquivos..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
+
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Nome do Arquivo</TableCell>
+                    <TableCell>Tamanho</TableCell>
+                    <TableCell>Tipo</TableCell>
+                    <TableCell>Data de Upload</TableCell>
+                    <TableCell>Ações</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {files.map((file) => (
+                    <TableRow key={file.id}>
+                      <TableCell>{file.original_filename}</TableCell>
+                      <TableCell>{formatFileSize(file.size)}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={file.content_type} 
+                          size="small" 
+                          variant="outlined" 
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {new Date(file.upload_date).toLocaleDateString('pt-BR')}
+                      </TableCell>
+                      <TableCell>
+                        <IconButton
+                          color="primary"
+                          onClick={() => handleFileDownload(file.id, file.original_filename)}
+                          size="small"
+                        >
+                          <DownloadIcon />
+                        </IconButton>
+                        <IconButton
+                          color="error"
+                          onClick={() => handleFileDelete(file.id)}
+                          size="small"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {files.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                        <Typography variant="body1" sx={{ color: 'gray' }}>
+                          Nenhum arquivo encontrado
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Box>
         )
       case 'profile':
@@ -534,6 +782,65 @@ function Dashboard() {
         <DialogActions>
           <Button onClick={() => setPasswordDialogOpen(false)}>Cancelar</Button>
           <Button onClick={handleUpdatePassword} variant="contained">Alterar Senha</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Upload File Dialog */}
+      <Dialog open={uploadDialogOpen} onClose={() => setUploadDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ color: 'black' }}>Enviar Arquivo</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <input
+              accept="*/*"
+              style={{ display: 'none' }}
+              id="file-upload"
+              type="file"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  setSelectedFile(file)
+                }
+              }}
+            />
+            <label htmlFor="file-upload">
+              <Button
+                variant="outlined"
+                component="span"
+                startIcon={<CloudUploadIcon />}
+                fullWidth
+                sx={{ mb: 2 }}
+              >
+                Escolher Arquivo
+              </Button>
+            </label>
+            
+            {selectedFile && (
+              <Box sx={{ p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
+                <Typography variant="body2" sx={{ color: 'black' }}>
+                  <strong>Arquivo selecionado:</strong> {selectedFile.name}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'black' }}>
+                  <strong>Tamanho:</strong> {formatFileSize(selectedFile.size)}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setUploadDialogOpen(false)
+            setSelectedFile(null)
+          }}>
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleFileUpload} 
+            variant="contained"
+            disabled={!selectedFile || uploading}
+            startIcon={uploading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
+          >
+            {uploading ? 'Enviando...' : 'Enviar'}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

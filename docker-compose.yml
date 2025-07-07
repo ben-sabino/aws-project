@@ -11,6 +11,8 @@ services:
       - app-network
     volumes:
       - ./backend/users.json:/app/users.json
+      - ./backend/uploads:/app/uploads
+      - ./backend/files.json:/app/files.json
 
   frontend:
     build: ./frontend

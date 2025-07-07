@@ -1,20 +1,32 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Query
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 from pydantic import BaseModel, EmailStr
 import json
 import os
-from typing import Optional
+import shutil
+import uuid
+from pathlib import Path
+import mimetypes
 
 # Security configurations
 SECRET_KEY = "your-secret-key-keep-it-secret"  # In production, use environment variable
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 USERS_FILE = "users.json"
+
+# Create uploads directory
+UPLOADS_DIR = "uploads"
+os.makedirs(UPLOADS_DIR, exist_ok=True)
+
+# Files database file
+FILES_DB = "files.json"
 
 app = FastAPI()
 
@@ -27,6 +39,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve uploaded files statically
+app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 # Password context for hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -55,6 +70,19 @@ def save_users(users: Dict):
 # Load users from file
 fake_users_db = load_users()
 
+def load_files() -> Dict:
+    if os.path.exists(FILES_DB):
+        with open(FILES_DB, 'r') as f:
+            return json.load(f)
+    return {}
+
+def save_files(files: Dict):
+    with open(FILES_DB, 'w') as f:
+        json.dump(files, f, indent=4)
+
+# Load files from file
+files_db = load_files()
+
 # Pydantic models
 class UserCreate(BaseModel):
     username: str
@@ -80,6 +108,19 @@ class UserUpdate(BaseModel):
 class PasswordUpdate(BaseModel):
     current_password: str
     new_password: str
+
+class FileInfo(BaseModel):
+    id: str
+    filename: str
+    original_filename: str
+    size: int
+    content_type: str
+    upload_date: str
+    username: str
+
+class FileSearchResponse(BaseModel):
+    files: List[FileInfo]
+    total: int
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
@@ -235,3 +276,144 @@ async def update_user_password(password_update: PasswordUpdate, token: str = Dep
     save_users(fake_users_db)
     
     return {"message": "Password updated successfully"}
+
+# Helper function to get current user
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    
+    user = fake_users_db.get(username)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return user
+
+@app.post("/api/files/upload")
+async def upload_file(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    # Generate unique filename
+    file_id = str(uuid.uuid4())
+    file_extension = Path(file.filename).suffix
+    unique_filename = f"{file_id}{file_extension}"
+    file_path = os.path.join(UPLOADS_DIR, unique_filename)
+    
+    try:
+        # Save file to disk
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Get file size
+        file_size = os.path.getsize(file_path)
+        
+        # Determine content type
+        content_type = file.content_type or mimetypes.guess_type(file.filename)[0] or 'application/octet-stream'
+        
+        # Save file info to database
+        file_info = {
+            "id": file_id,
+            "filename": unique_filename,
+            "original_filename": file.filename,
+            "size": file_size,
+            "content_type": content_type,
+            "upload_date": datetime.utcnow().isoformat(),
+            "username": current_user["username"]
+        }
+        
+        files_db[file_id] = file_info
+        save_files(files_db)
+        
+        return FileInfo(**file_info)
+        
+    except Exception as e:
+        # Clean up file if something went wrong
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        raise HTTPException(status_code=500, detail=f"Erro ao fazer upload do arquivo: {str(e)}")
+
+@app.get("/api/files", response_model=FileSearchResponse)
+async def list_files(
+    search: Optional[str] = Query(None, description="Pesquisar por nome do arquivo"),
+    current_user: dict = Depends(get_current_user)
+):
+    # Get user's files
+    user_files = []
+    for file_info in files_db.values():
+        if file_info["username"] == current_user["username"]:
+            # Apply search filter if provided
+            if search:
+                if search.lower() in file_info["original_filename"].lower():
+                    user_files.append(FileInfo(**file_info))
+            else:
+                user_files.append(FileInfo(**file_info))
+    
+    # Sort by upload date (newest first)
+    user_files.sort(key=lambda x: x.upload_date, reverse=True)
+    
+    return FileSearchResponse(files=user_files, total=len(user_files))
+
+@app.get("/api/files/{file_id}")
+async def download_file(
+    file_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    file_info = files_db.get(file_id)
+    if not file_info:
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado")
+    
+    # Check if user owns the file
+    if file_info["username"] != current_user["username"]:
+        raise HTTPException(status_code=403, detail="Sem permissão para acessar este arquivo")
+    
+    file_path = os.path.join(UPLOADS_DIR, file_info["filename"])
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado no sistema")
+    
+    return FileResponse(
+        path=file_path,
+        filename=file_info["original_filename"],
+        media_type=file_info["content_type"]
+    )
+
+@app.delete("/api/files/{file_id}")
+async def delete_file(
+    file_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    file_info = files_db.get(file_id)
+    if not file_info:
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado")
+    
+    # Check if user owns the file
+    if file_info["username"] != current_user["username"]:
+        raise HTTPException(status_code=403, detail="Sem permissão para excluir este arquivo")
+    
+    # Delete file from disk
+    file_path = os.path.join(UPLOADS_DIR, file_info["filename"])
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    
+    # Remove from database
+    del files_db[file_id]
+    save_files(files_db)
+    
+    return {"message": "Arquivo excluído com sucesso"}
+
+@app.get("/")
+async def root():
+    return {"message": "AWS Project File Management API", "status": "running"}
+
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "total_users": len(fake_users_db),
+        "total_files": len(files_db)
+    }
